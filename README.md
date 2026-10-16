@@ -1,4 +1,4 @@
-# 🌟 DỰ ÁN CMCU: HỆ THỐNG QUẢN TRỊ SỰ KIỆN & ĐIỂM DANH TỰ ĐỘNG BẰNG QR CODE
+# 🌟 DỰ ÁN CMC_EVENTS: HỆ THỐNG QUẢN TRỊ SỰ KIỆN & ĐIỂM DANH TỰ ĐỘNG BẰNG QR CODE
 
 > *“Công nghệ không chỉ giúp chúng ta làm việc hiệu quả hơn, mà còn tạo điều kiện để những khoảnh khắc kết nối trở nên trọn vẹn hơn.”*
 
@@ -8,7 +8,7 @@ Trong môi trường đại học, các hoạt động như hội thảo, worksh
 
 Cách làm trên có thể dẫn đến nhiều bất cập như khó kiểm soát số lượng đăng ký, mất thời gian chờ check-in, phát sinh tình trạng điểm danh hộ và tốn công tổng hợp dữ liệu sau sự kiện.
 
-Xuất phát từ những vấn đề thực tế đó, nhóm phát triển dự án **CMCU – Hệ thống Quản trị Sự kiện & Điểm danh Tự động bằng QR Code**, hướng đến việc ứng dụng công nghệ để đơn giản hóa quy trình tổ chức, nâng cao hiệu quả quản lý và cải thiện trải nghiệm của sinh viên.
+Xuất phát từ những vấn đề thực tế đó, nhóm phát triển dự án **CMC_EVENTS – Hệ thống Quản trị Sự kiện & Điểm danh Tự động bằng QR Code**, hướng đến việc ứng dụng công nghệ để đơn giản hóa quy trình tổ chức, nâng cao hiệu quả quản lý và cải thiện trải nghiệm của sinh viên.
 
 Dự án tập trung vào ba mục tiêu chính:
 
@@ -42,7 +42,7 @@ Hệ thống được thiết kế theo từng nhóm người dùng, tương ứ
 
 ## 🏛️ 3. Thiết kế cơ sở dữ liệu
 
-Cơ sở dữ liệu của CMCU được tổ chức thành sáu bảng chính, tương ứng với các nhóm dữ liệu và nghiệp vụ của hệ thống:
+Cơ sở dữ liệu của CMC_EVENTS được tổ chức thành sáu bảng chính, tương ứng với các nhóm dữ liệu và nghiệp vụ của hệ thống:
 
 1. **FACULTIES:** Lưu thông tin khoa/viện.
 2. **USERS:** Quản lý thông tin sinh viên, nhân viên và quản trị viên.
@@ -69,12 +69,12 @@ Các quy tắc về sức chứa, thời hạn hủy vé, điều kiện tham gi
 
 ## 🌸 5. Giá trị và định hướng phát triển
 
-CMCU hướng đến việc giải quyết những khó khăn thường gặp trong công tác tổ chức sự kiện tại môi trường đại học bằng một quy trình quản lý tập trung và có khả năng kiểm soát tốt hơn.
+CMC_EVENTS hướng đến việc giải quyết những khó khăn thường gặp trong công tác tổ chức sự kiện tại môi trường đại học bằng một quy trình quản lý tập trung và có khả năng kiểm soát tốt hơn.
 
 Đối với sinh viên, hệ thống giúp việc tìm kiếm, đăng ký và quản lý vé thuận tiện hơn. Đối với Ban Tổ chức, hệ thống hỗ trợ giảm thao tác thủ công, hạn chế sai sót trong khâu điểm danh và đơn giản hóa việc tổng hợp dữ liệu.
 
 Trong quá trình phát triển, nhóm sẽ tiếp tục hoàn thiện các chức năng, kiểm thử những tình huống thực tế và đánh giá hiệu quả vận hành. Những tính năng như xác thực ngoại tuyến, bảo mật mã QR và tích hợp dữ liệu điểm rèn luyện cần được xem xét dựa trên yêu cầu nghiệp vụ và khả năng triển khai thực tế.
 
-CMCU không chỉ là một bài tập xây dựng phần mềm, mà còn là cơ hội để nhóm vận dụng kiến thức Công nghệ thông tin vào một bài toán thực tiễn, rèn luyện tư duy phân tích, kỹ năng làm việc nhóm và khả năng phát triển sản phẩm hướng đến người dùng.
+CMC_EVENTS không chỉ là một bài tập xây dựng phần mềm, mà còn là cơ hội để nhóm vận dụng kiến thức Công nghệ thông tin vào một bài toán thực tiễn, rèn luyện tư duy phân tích, kỹ năng làm việc nhóm và khả năng phát triển sản phẩm hướng đến người dùng.
 
-*Với CMCU, nhóm mong muốn góp phần xây dựng một môi trường tổ chức sự kiện thuận tiện, minh bạch và hiệu quả hơn, để công nghệ thực sự phục vụ con người và những kết nối trong đời sống sinh viên.*
+*Với CMC_EVENTS, nhóm mong muốn góp phần xây dựng một môi trường tổ chức sự kiện thuận tiện, minh bạch và hiệu quả hơn, để công nghệ thực sự phục vụ con người và những kết nối trong đời sống sinh viên.*
