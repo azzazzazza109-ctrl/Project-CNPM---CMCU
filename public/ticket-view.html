@@ -3,6 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+Long-Master
+    <title>CMCU Event - Đăng ký & Vé Điện Tử</title>
+    <!-- Thư viện sinh mã QR tự động từ chuỗi token -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #003366;
+            --accent: #0066cc;
+            --success: #28a745;
+            --danger: #dc3545;
+            --bg: #f0f2f5;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
+        .ticket-wrapper { background: #fff; width: 100%; max-width: 400px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e1e4e8; }
+        .header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 24px 20px; text-align: center; }
+        .header h2 { font-size: 20px; margin-bottom: 6px; }
+        .header p { font-size: 13px; opacity: 0.9; }
+        .content { padding: 20px; }
+        .event-badge { display: inline-block; background: #e6f0fa; color: var(--accent); font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; margin-bottom: 12px; }
+        .event-title { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; line-height: 1.4; }
+        .info-row { display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 8px; }
+        .info-row strong { color: #222; }
+        .divider { border-top: 1px dashed #cbd5e1; margin: 18px 0; position: relative; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px; }
+        select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; }
+        select:focus { border-color: var(--accent); }
+        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-submit:hover { background: var(--accent); }
+        .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+        
+        /* Khung hiển thị vé QR sau khi đăng ký thành công */
+        .ticket-view { display: none; text-align: center; animation: fadeIn 0.3s ease-in-out; }
+        .qr-box { margin: 16px auto; padding: 12px; background: #fff; border: 2px dashed #003366; border-radius: 12px; display: inline-block; }
+        .ticket-code { font-family: monospace; font-size: 16px; font-weight: 700; color: var(--primary); letter-spacing: 1px; margin-bottom: 4px; }
+        .offline-note { font-size: 12px; color: #64748b; margin-top: 8px; background: #f8fafc; padding: 6px; border-radius: 6px; }
+        
+        /* Hộp thông báo kết quả */
+        .alert-box { padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 14px; display: none; line-height: 1.4; }
+        .alert-success { background: #def7ec; color: #03543f; border: 1px solid #84e1bc; }
+        .alert-error { background: #fde8e8; color: #9b1c1c; border: 1px solid #f8b4b4; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="ticket-wrapper">
+    <div class="header">
+        <h2>ĐẠI HỌC CMC</h2>
+        <p>Hệ thống Đăng ký & Soát vé Sự kiện</p>
+    </div>
+
+    <div class="content">
+        <span class="event-badge">SỰ KIỆN HỌC ĐƯỜNG</span>
+        <div class="event-title">Lễ Khai giảng Năm học 2026 - CMCU</div>
+        
+        <div class="info-row"><span>Địa điểm:</span> <strong>Hội trường Tầng 2 - Campus Vạn Phúc</strong></div>
+        <div class="info-row"><span>Đối tượng:</span> <strong>Chỉ mở cho Khóa K4 - Khoa CNTT</strong></div>
+        <div class="info-row"><span>Sức chứa:</span> <strong id="lblCapacity">Tối đa 2 chỗ ngồi</strong></div>
+
+        <div class="divider"></div>
+
+        <!-- Form thao tác đăng ký -->
+        <div id="registrationForm">
+            <div class="form-group">
+                <label for="studentSelect">Chọn tài khoản sinh viên thử nghiệm:</label>
+                <select id="studentSelect">
+                    <option value="101">Trần Long (BIT250001 - Khoa CNTT)</option>
+                    <option value="102">Bùi Anh Tú (BIT250002 - Khoa CNTT)</option>
+                    <option value="103">Lê Danh Lượng (BBA250003 - Khoa Kinh doanh)</option>
+                </select>
+            </div>
+            <button class="btn-submit" id="btnRegister" onclick="handleRegister()">XÁC NHẬN ĐĂNG KÝ VÉ</button>
+        </div>
+
+        <!-- Khung phản hồi vé thành công (Design chuẩn E-ticket của Nhi) -->
+        <div id="ticketView" class="ticket-view">
+            <div class="ticket-code" id="resTicketCode">TK-E1-BIT250001</div>
+            <div class="qr-box">
+                <div id="qrcode"></div>
+            </div>
+            <p style="font-size: 13px; font-weight: 600; color: #2e7d32;">● VÉ HỢP LỆ (REGISTERED)</p>
+            <div class="offline-note">
+                💡 <strong>Lưu ý:</strong> Vui lòng chụp ảnh màn hình mã QR này để sử dụng soát vé khi mất mạng tại cửa hội trường.
+            </div>
+            <button class="btn-submit" style="background: #475569; margin-top: 14px;" onclick="resetForm()">Đăng ký tài khoản khác</button>
+        </div>
+
+        <!-- Thông báo lỗi hoặc kết quả -->
+        <div id="alertBox" class="alert-box"></div>
+    </div>
+</div>
+
+<script>
+let qrCodeInstance = null;
+
+async function handleRegister() {
+    const studentId = document.getElementById('studentSelect').value;
+    const btn = document.getElementById('btnRegister');
+    const alertBox = document.getElementById('alertBox');
+    const ticketView = document.getElementById('ticketView');
+    const formView = document.getElementById('registrationForm');
+
+    btn.disabled = true;
+    btn.innerText = "Đang xử lý...";
+    alertBox.style.display = 'none';
+
+    try {
+        const response = await fetch('/api/tickets/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event_id: 1,
+                student_id: Number(studentId)
+            })
+        });
+
+        const resData = await response.json();
+
+        if (response.ok && resData.success) {
+            // Cấp vé thành công
+            formView.style.display = 'none';
+            ticketView.style.display = 'block';
+            document.getElementById('resTicketCode').innerText = resData.data.ticket_code;
+
+            // Render mã QR trực quan
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = "";
+            qrCodeInstance = new QRCode(qrContainer, {
+                text: resData.data.qr_token,
+                width: 160,
+                height: 160,
+                colorDark: "#003366",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        } else {
+            // Xử lý các mã lỗi: 400 (Trùng vé), 403 (Sai khoa), 409 (Hết chỗ)
+            alertBox.className = 'alert-box alert-error';
+            alertBox.style.display = 'block';
+            alertBox.innerHTML = `<strong>LỖI (${response.status}):</strong> ${resData.message}`;
+        }
+    } catch (err) {
+        alertBox.className = 'alert-box alert-error';
+        alertBox.style.display = 'block';
+        alertBox.innerHTML = `<strong>LỖI KẾT NỐI:</strong> Không thể gọi tới máy chủ backend.`;
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "XÁC NHẬN ĐĂNG KÝ VÉ";
+    }
+}
+
+function resetForm() {
+    document.getElementById('registrationForm').style.display = 'block';
+    document.getElementById('ticketView').style.display = 'none';
+    document.getElementById('alertBox').style.display = 'none';
+}
+</script>
+
+
     <title>Vé Điện Tử CMCU - Đại học CMC</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
@@ -54,5 +215,6 @@
             </div>
         </div>
     </div>
+ main
 </body>
 </html>
