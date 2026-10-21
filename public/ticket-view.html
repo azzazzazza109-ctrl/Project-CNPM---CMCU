@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+Long-Master
     <title>CMCU Event - Đăng ký & Vé Điện Tử</title>
     <!-- Thư viện sinh mã QR tự động từ chuỗi token -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -162,5 +163,58 @@ function resetForm() {
 }
 </script>
 
+
+    <title>Vé Điện Tử CMCU - Đại học CMC</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .ticket-card { max-width: 380px; margin: auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; border-top: 8px solid #0052cc; }
+        .ticket-header { background: #0052cc; color: #fff; padding: 16px; text-align: center; }
+        .ticket-header h2 { margin: 0; font-size: 18px; text-transform: uppercase; }
+        .ticket-body { padding: 24px; text-align: center; }
+        .qr-placeholder { width: 200px; height: 200px; margin: 0 auto 16px; background: #fafafa; border: 2px dashed #0052cc; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0052cc; border-radius: 12px; }
+        .ticket-code { font-size: 20px; font-weight: bold; color: #d32f2f; letter-spacing: 2px; margin-bottom: 16px; }
+        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+        .info-label { color: #666; font-weight: 500; }
+        .info-val { font-weight: 600; color: #333; }
+        .offline-note { margin-top: 20px; font-size: 12px; color: #888; background: #fff3cd; color: #856404; padding: 8px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <h2>Vé Tham Dự Sự Kiện CMCU</h2>
+            <small>Trường Đại học CMC</small>
+        </div>
+        <div class="ticket-body">
+            <div class="qr-placeholder" id="qrContainer">[ HÌNH ẢNH MÃ QR ]</div>
+            <div class="ticket-code">TK-E1-BIT250001</div>
+
+            <div class="info-row">
+                <span class="info-label">Sinh viên:</span>
+                <span class="info-val">Trần Long</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Mã SV:</span>
+                <span class="info-val">BIT250001</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Lớp / Khóa:</span>
+                <span class="info-val">25IT - Khóa K4</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Sự kiện:</span>
+                <span class="info-val">CMCU TechTalk 2026</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Địa điểm:</span>
+                <span class="info-val">Hội trường Tầng 2 - Campus Vạn Phúc</span>
+            </div>
+
+            <div class="offline-note">
+                💡 <strong>Mẹo:</strong> Sinh viên vui lòng chụp ảnh lại màn hình vé để sử dụng check-in ngoại tuyến khi mất sóng 4G tại cửa hội trường.
+            </div>
+        </div>
+    </div>
+ main
 </body>
 </html>
