@@ -5,7 +5,7 @@ Hệ thống Quản trị Sự kiện & Điểm danh Tự động bằng QR Code
 Dự án giải quyết bài toán quá tải sức chứa hội trường, hạn chế sinh viên đăng ký trái ngành/khóa, và xóa bỏ tình trạng điểm danh giấy/Google Form truyền thống bằng giải pháp thẻ vé điện tử QR Code kết hợp ứng dụng quét Camera di động (< 1.5s).
 
 ## 2. Danh sách thành viên & Phân công vai trò (Nhóm 2)
-- **Trần Long** - Trưởng nhóm / Backend Lead & Kiến trúc Use Case
+- **Trần Long** - Trưởng nhóm / Backend & Use Case
 - **Nguyễn Thị Yến Nhi** - UI/UX Lead & QA Tester
 - **Nguyễn Văn Công Minh** - Database Lead (CSDL 3NF & Transaction)
 - **Trần Lâm** - Test Case Lead & Kiểm thử chéo UI/API
