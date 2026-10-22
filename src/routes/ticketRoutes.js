@@ -155,3 +155,36 @@ router.post('/cancel', async (req, res) => {
 });
 
 module.exports = router;
+// API: Quét QR Điểm danh tại cửa (Staff)
+router.post('/checkin', async (req, res) => {
+    const { qr_token } = req.body;
+    
+    // 1. Tìm vé theo token hoặc mã vé
+    const ticket = db.tickets.find(t => t.qr_token === qr_token || t.ticket_code === qr_token);
+    if (!ticket) {
+        return res.status(404).json({ success: false, message: "Mã vé không tồn tại trên hệ thống!" });
+    }
+
+    // 2. Chặn quét trùng lặp (Anti-duplicate)
+    if (ticket.checkin_status === 'CHECKED_IN') {
+        return res.status(400).json({ 
+            success: false, 
+            message: `CẢNH BÁO: Vé này đã được điểm danh vào lúc ${ticket.checkin_time}!` 
+        });
+    }
+
+    // 3. Điểm danh thành công
+    ticket.checkin_status = 'CHECKED_IN';
+    ticket.checkin_time = new Date().toLocaleTimeString('vi-VN');
+    
+    const student = db.students.find(s => s.student_id === ticket.student_id);
+    return res.status(200).json({
+        success: true,
+        message: "Điểm danh thành công!",
+        data: {
+            student_name: student ? student.full_name : "Sinh viên",
+            student_code: student ? student.student_code : ticket.student_id,
+            checkin_time: ticket.checkin_time
+        }
+    });
+});
