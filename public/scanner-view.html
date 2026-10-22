@@ -3,34 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trình Quét Check-in - Ban Tổ Chức CMCU</title>
+    <title>BÀN SOÁT VÉ HỘI TRƯỜNG</title>
+    <!-- Nhúng thư viện quét QR qua Camera -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #121212; color: #fff; margin: 0; padding: 16px; text-align: center; }
-        .camera-container { width: 100%; max-width: 380px; height: 320px; margin: 20px auto; background: #000; border-radius: 16px; position: relative; border: 2px solid #0052cc; display: flex; align-items: center; justify-content: center; }
-        .scanner-laser { width: 80%; height: 2px; background: #00e676; box-shadow: 0 0 8px #00e676; position: absolute; }
-        .status-box { max-width: 380px; margin: auto; padding: 16px; border-radius: 12px; font-weight: bold; display: none; }
-        .status-success { background: #1b5e20; color: #a5d6a7; border: 1px solid #66bb6a; }
-        .status-error { background: #b71c1c; color: #ffcdd2; border: 1px solid #ef5350; }
-        .manual-btn { margin-top: 20px; background: #333; color: #fff; border: 1px solid #555; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+        body { background-color: #121212; color: #fff; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .container { width: 90%; max-width: 420px; text-align: center; }
+        h2 { margin-bottom: 4px; font-size: 20px; }
+        p.sub { color: #888; font-size: 13px; margin-bottom: 16px; }
+        
+        /* Khung hiển thị luồng Camera */
+        #reader { width: 100%; border-radius: 16px; overflow: hidden; border: 2px solid #0070f3; background: #000; min-height: 280px; }
+        
+        .result-box { margin-top: 16px; padding: 14px; border-radius: 10px; display: none; font-size: 14px; font-weight: bold; }
+        .success { background: #1b5e20; color: #a5d6a7; border: 1px solid #2e7d32; }
+        .error { background: #b71c1c; color: #ef9a9a; border: 1px solid #c62828; }
+        
+        .btn-manual { margin-top: 16px; background: #262626; color: #ccc; border: 1px solid #444; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .btn-manual:hover { background: #333; color: #fff; }
     </style>
 </head>
 <body>
-    <h3>BÀN SOÁT VÉ HỘI TRƯỜNG</h3>
-    <p style="font-size: 13px; color: #aaa;">Hướng camera điện thoại vào mã QR của sinh viên</p>
 
-    <div class="camera-container">
-        <div class="scanner-laser"></div>
-        <span style="color: #666;">[ CAMERA STREAM VIEW ]</span>
-    </div>
+<div class="container">
+    <h2>BÀN SOÁT VÉ HỘI TRƯỜNG</h2>
+    <p class="sub">Hướng camera điện thoại vào mã QR của sinh viên</p>
 
-    <!-- Hộp thông báo phản hồi trạng thái -->
-    <div id="statusBox" class="status-box status-success" style="display: block;">
-        ✔ CHECK-IN THÀNH CÔNG<br>
-        <span style="font-size: 14px; font-weight: normal;">Trần Long (BIT250001) - Lúc 08:15:30</span>
-    </div>
+    <!-- Camera thật sẽ render vào div này -->
+    <div id="reader"></div>
 
-    <button class="manual-btn" onclick="alert('Mở ô nhập tay Mã SV BIT250xxx khi rớt mạng')">
-        ⌨ Điểm danh thủ công bằng Mã SV
-    </button>
+    <!-- Thông báo kết quả quét (chỉ hiện khi có kết quả) -->
+    <div id="resultBox" class="result-box"></div>
+
+    <button class="btn-manual" onclick="handleManualCheckin()">⌨ Điểm danh thủ công bằng Mã SV</button>
+
+<script>
+    const resultBox = document.getElementById('resultBox');
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Khi camera bắt được mã QR:
+        resultBox.style.display = 'block';
+        resultBox.className = 'result-box success';
+        resultBox.innerHTML = `✓ CHECK-IN THÀNH CÔNG<br><span style="font-size:12px; font-weight:normal;">Dữ liệu vé: ${decodedText} - Lúc ${new Date().toLocaleTimeString()}</span>`;
+        
+        // Tạm dừng 2 giây để tránh quét liên tục 1 mã
+        html5QrCode.pause();
+        setTimeout(() => { html5QrCode.resume(); }, 2000);
+    }
+
+    // Khởi tạo camera
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+        { facingMode: "environment" }, // Ưu tiên camera sau nếu dùng điện thoại
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        onScanSuccess
+    ).catch(err => {
+        resultBox.style.display = 'block';
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML = `✗ Không thể truy cập Camera. Hãy bấm cho phép quyền (Allow Camera) trên trình duyệt.`;
+    });
+    function handleManualCheckin() {
+    const studentCode = prompt("Nhập Mã Sinh Viên hoặc Mã Vé để điểm danh thủ công:");
+    if (studentCode && studentCode.trim() !== "") {
+        // Gửi mã vừa nhập đi xác thực
+        onScanSuccess(studentCode.trim(), null);
+    }
+}
+</script>
+
 </body>
 </html>
