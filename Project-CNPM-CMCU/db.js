@@ -4,12 +4,13 @@ require('dotenv').config();
 const config = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER, 
+    server: '127.0.0.1', // <-- SỬA DÒNG NÀY
+    port: 1433,
     database: process.env.DB_DATABASE,
+    requestTimeout: 60000, 
     options: {
-        encrypt: false, // Dành cho localhost
-        trustServerCertificate: true,
-        instanceName: 'SQLEXPRESS' // Tên server của bạn theo như trong hình
+        encrypt: false,
+        trustServerCertificate: true
     }
 };
 
