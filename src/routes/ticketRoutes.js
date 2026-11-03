@@ -9,6 +9,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const qr = require('../services/qrService');
+const eligibilityService = require('../services/eligibilityService');
+const capacityService = require('../services/capacityService');
 
 /* Helper tạo lỗi có status + code */
 function httpError(status, message, code, data) {
@@ -63,48 +65,28 @@ router.post('/register', (req, res, next) => {
       throw httpError(400, 'Sự kiện đã diễn ra, không thể đăng ký', 'EVENT_STARTED');
     }
 
-    /* ---------- 3. TC-01 — Eligibility (Khoa + Khoá) ---------- */
-    const eligibilities = db.findWhere('event_eligibility', e => e.event_id === eventId);
-    const isEligible = eligibilities.some(
-      e => e.cohort === user.cohort && e.faculty_id === user.faculty_id
-    );
-    if (!isEligible) {
-      const faculty = db.findById('faculties', user.faculty_id);
-      throw httpError(
-        403,
-        `Sinh viên không đủ điều kiện tham dự. Yêu cầu: Khoá ${eligibilities.map(e=>e.cohort).join('/')} — ` +
-        `Khoa ${eligibilities.map(e => db.findById('faculties', e.faculty_id)?.faculty_name).join('/')}. ` +
-        `Bạn hiện là ${user.cohort} — ${faculty?.faculty_name || 'N/A'}.`,
-        'NOT_ELIGIBLE'
-      );
+        /* =========================================================
+       GỌI SERVICE CỦA TÚ (PB-01) VÀ MINH (PB-02)
+       ========================================================= */
+    
+    // 1. Gọi Tú check điều kiện (Eligibility)
+    const eligCheck = eligibilityService.checkEligibility(user, eventId);
+    if (!eligCheck.ok) {
+      throw httpError(403, eligCheck.message, 'NOT_ELIGIBLE');
     }
 
-    /* ---------- 4. TC-02 — Chống trùng vé (uq_event_student) ---------- */
-    const existing = db.findOne(
-      'tickets',
-      t => t.event_id === eventId && t.student_id === user.user_id
-    );
-    if (existing && existing.checkin_status !== 'CANCELLED') {
-      throw httpError(
-        400,
-        `Sinh viên đã có vé cho sự kiện này (trạng thái: ${existing.checkin_status}, ` +
-        `mã vé: ${existing.ticket_code}). Mỗi sinh viên chỉ được 1 vé/sự kiện.`,
-        'DUPLICATE_TICKET'
-      );
+    // 2. Gọi Minh check trùng vé (Duplicate)
+    const dupCheck = capacityService.checkDuplicate(user, eventId);
+    if (!dupCheck.ok) {
+      throw httpError(400, dupCheck.message, 'DUPLICATE_TICKET');
     }
+    // Lưu lại vé cũ (nếu vé đó đang bị CANCELLED) để tí nữa kích hoạt lại
+    const existingTicket = dupCheck.existing; 
 
-    /* ---------- 5. TC-03 — Chống Overbooking ---------- */
-    const activeCount = db.count(
-      'tickets',
-      t => t.event_id === eventId && t.checkin_status !== 'CANCELLED'
-    );
-    if (activeCount >= event.seat_capacity) {
-      db.update('events', eventId, { status: 'FULL' }); // tự khóa
-      throw httpError(
-        409,
-        `Sự kiện đã đầy chỗ (${activeCount}/${event.seat_capacity}). Vui lòng chọn sự kiện khác.`,
-        'EVENT_FULL'
-      );
+    // 3. Gọi Minh check sức chứa (Overbooking)
+    const capCheck = capacityService.checkOverbooking(eventId, event.seat_capacity);
+    if (!capCheck.ok) {
+      throw httpError(409, capCheck.message, 'EVENT_FULL');
     }
 
     /* ---------- 6. Sinh mã vé + QR ---------- */
@@ -113,12 +95,13 @@ router.post('/register', (req, res, next) => {
     const now = new Date().toISOString();
 
     let ticket;
-    if (existing && existing.checkin_status === 'CANCELLED') {
-      /* Tái kích hoạt vé đã hủy — giữ lịch sử ticket_id */
-      ticket = db.update('tickets', existing.ticket_id, {
+    // Dùng existingTicket (do Minh trả về) thay vì biến existing cũ
+    if (existingTicket && existingTicket.checkin_status === 'CANCELLED') {
+      /* Tái kích hoạt vé đã hủy */
+      ticket = db.update('tickets', existingTicket.ticket_id, {
         ticket_code: ticketCode,
         qr_token: qrToken,
-        registered_at: now,
+        registered_at: new Date().toISOString(),
         checkin_status: 'REGISTERED',
         checkin_time: null,
         checked_by: null,
@@ -130,7 +113,7 @@ router.post('/register', (req, res, next) => {
           student_id: user.user_id,
           ticket_code: ticketCode,
           qr_token: qrToken,
-          registered_at: now,
+          registered_at: new Date().toISOString(),
           checkin_status: 'REGISTERED',
           checkin_time: null,
           checked_by: null,
@@ -144,8 +127,8 @@ router.post('/register', (req, res, next) => {
     }
 
     /* ---------- 7. Tự khóa FULL nếu vừa hết chỗ ---------- */
-    const newCount = activeCount + 1;
-    if (newCount >= event.seat_capacity) {
+    // Dùng capCheck.activeCount (do Minh trả về) thay vì đếm lại
+    if (capCheck.activeCount + 1 >= event.seat_capacity) {
       db.update('events', eventId, { status: 'FULL' });
     }
 
