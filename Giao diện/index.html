@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Event Management</title>
+
+    <!-- Kết nối CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <div class="logo">
+                <h2>SEMS</h2>
+                <p>Student Event Management</p>
+            </div>
+
+            <nav class="sidebar-menu">
+
+                <p class="menu-title">TỔNG QUAN</p>
+
+                <a href="#" class="menu-item active" data-page="dashboard">
+                    <span>⌂</span> Trang chủ
+                </a>
+
+                <a href="#" class="menu-item" data-page="events">
+                    <span>▣</span> Danh sách sự kiện
+                </a>
+
+                <a href="#" class="menu-item" data-page="discover">
+                    <span>⌕</span> Khám phá sự kiện
+                </a>
+
+                <p class="menu-title">SINH VIÊN</p>
+
+                <a href="#" class="menu-item" data-page="tickets">
+                    <span>▤</span> Vé của tôi
+                </a>
+
+                <a href="#" class="menu-item" data-page="history">
+                    <span>◷</span> Lịch sử tham gia
+                </a>
+
+                <p class="menu-title">QUẢN LÝ</p>
+
+                <a href="#" class="menu-item" data-page="checkin">
+                    <span>▦</span> Điểm danh QR
+                </a>
+
+                <a href="#" class="menu-item" data-page="create-event">
+                    <span>＋</span> Tạo sự kiện
+                </a>
+
+                <a href="#" class="menu-item" data-page="tasks">
+                    <span>☷</span> Phân công công việc
+                </a>
+
+                <a href="#" class="menu-item" data-page="reports">
+                    <span>▥</span> Báo cáo thống kê
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>© 2026 SEMS System</p>
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <!-- HEADER -->
+            <header class="header">
+
+                <div class="header-left">
+                    <button id="menu-toggle" class="menu-toggle">
+                        ☰
+                    </button>
+
+                    <div>
+                        <h2 id="page-title">Tổng quan</h2>
+                        <p>Chào mừng bạn đến với hệ thống SEMS</p>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <button class="notification">♧</button>
+
+                    <div class="user-info">
+                        <div class="avatar">SV</div>
+                        <div>
+                            <strong>Nguyễn Văn A</strong>
+                            <p>Sinh viên</p>
+                        </div>
+                    </div>
+                </div>
+
+            </header>
+
+
+
+          <!-- KHU VỰC HIỂN THỊ NỘI DUNG -->
+               <section id="page-content" class="dashboard">
+
+                </section>
+
+
+                <!-- STATISTICS -->
+                <div class="statistics">
+
+                    <div class="stat-card">
+                        <p>Tổng số sự kiện</p>
+                        <h2>24</h2>
+                        <span>Đang được quản lý</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Sinh viên đăng ký</p>
+                        <h2>1.250</h2>
+                        <span>Tổng lượt đăng ký</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Sự kiện sắp diễn ra</p>
+                        <h2>08</h2>
+                        <span>Trong thời gian tới</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Lượt tham dự</p>
+                        <h2>986</h2>
+                        <span>Đã được điểm danh</span>
+                    </div>
+
+                </div>
+
+
+                <!-- EVENT SECTION -->
+                <div class="section-header">
+                    <div>
+                        <h2>Sự kiện nổi bật</h2>
+                        <p>Những sự kiện đang được quan tâm</p>
+                    </div>
+
+                    <button class="primary-button" id="view-events">
+                        Xem tất cả
+                    </button>
+                </div>
+
+
+                <div class="event-list">
+
+                    <div class="event-card">
+                        <div class="event-image image-one">
+                            SỰ KIỆN 01
+                        </div>
+
+                        <div class="event-content">
+                            <span class="event-status">Đang mở đăng ký</span>
+                            <h3>Ngày hội công nghệ sinh viên</h3>
+                            <p>Thời gian: 15/11/2026</p>
+                            <p>Địa điểm: Hội trường A</p>
+                            <button class="detail-button">
+                                Xem chi tiết
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <div class="event-card">
+                        <div class="event-image image-two">
+                            SỰ KIỆN 02
+                        </div>
+
+                        <div class="event-content">
+                            <span class="event-status">Đang mở đăng ký</span>
+                            <h3>Workshop định hướng nghề nghiệp</h3>
+                            <p>Thời gian: 20/11/2026</p>
+                            <p>Địa điểm: Phòng B203</p>
+                            <button class="detail-button">
+                                Xem chi tiết
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <div class="event-card">
+                        <div class="event-image image-three">
+                            SỰ KIỆN 03
+                        </div>
+
+                        <div class="event-content">
+                            <span class="event-status">Đang mở đăng ký</span>
+                            <h3>Cuộc thi lập trình sinh viên</h3>
+                            <p>Thời gian: 25/11/2026</p>
+                            <p>Địa điểm: Phòng Lab 01</p>
+                            <button class="detail-button">
+                                Xem chi tiết
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- Kết nối JavaScript -->
+    <script src="js/main.js"></script>
+
+</body>
+</html>
