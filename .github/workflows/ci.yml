@@ -1,0 +1,63 @@
+name: Backend CI Test
+
+on:
+  push:
+    branches: [ "main", "Tú", "master" ] # Chạy khi push lên các nhánh này
+  pull_request:
+    branches: [ "main" ] # Chạy khi có ai đó tạo Pull Request vào main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Lấy code từ Repository
+      uses: actions/checkout@v4
+
+    - name: 2. Cài đặt Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: 3. Khởi tạo SQL Server (bằng Docker)
+      run: |
+        docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=MatKhauApp_KhacSa!2026" \
+           -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2019-latest
+        echo "Đợi SQL Server khởi động..."
+        sleep 20
+
+    - name: 4. Nạp Database và Seed Data
+      run: |
+        # Copy file SQL vào trong container Docker
+        docker cp database/cmcu_database.sql sqlserver:/tmp/
+        docker cp database/seed_data.sql sqlserver:/tmp/
+        
+        # Chạy script SQL (Dùng SA user vì user cmcu_app chưa được tạo)
+        docker exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "MatKhauApp_KhacSa!2026" -i /tmp/cmcu_database.sql
+        docker exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "MatKhauApp_KhacSa!2026" -i /tmp/seed_data.sql
+
+    - name: 5. Cài đặt thư viện Backend
+      working-directory: ./backend
+      run: npm install
+
+    - name: 6. Tạo file .env cho môi trường Test
+      working-directory: ./backend
+      run: |
+        echo "PORT=3000" > .env
+        echo "DB_MODE=sqlserver" >> .env
+        echo "DB_SERVER=127.0.0.1" >> .env
+        echo "DB_NAME=cmcu_event_db" >> .env
+        echo "DB_USER=sa" >> .env
+        echo "DB_PASSWORD=MatKhauApp_KhacSa!2026" >> .env
+        echo "DB_PORT=1433" >> .env
+        echo "JWT_SECRET=cmcu_event_jwt_secret_key_2026_super_secure" >> .env
+
+    - name: 7. Khởi động Backend Server
+      working-directory: ./backend
+      run: |
+        node server.js &
+        sleep 5 # Đợi server chạy ổn định
+
+    - name: 8. Chạy Auto Test (Kiểm thử tự động)
+      working-directory: ./backend
+      run: node test_checkin.js

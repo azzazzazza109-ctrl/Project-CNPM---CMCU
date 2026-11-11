@@ -2,9 +2,9 @@
    CMCU DATABASE — DDL chuẩn hóa 3NF
    Môn: INFO2011 — Trường Đại học CMC
    ============================================================= */
-IF DB_ID('CMCU') IS NULL CREATE DATABASE CMCU;
+IF DB_ID('cmcu_event_db') IS NULL CREATE DATABASE cmcu_event_db;
 GO
-USE CMCU;
+USE cmcu_event_db;
 GO
 
 /* Xóa theo thứ tự ngược FK để tái tạo sạch */
@@ -34,6 +34,7 @@ CREATE TABLE users (
     student_code  VARCHAR(20)  NULL UNIQUE,           -- NULL với STAFF/ADMIN
     full_name     NVARCHAR(100) NOT NULL,
     email         VARCHAR(100) NOT NULL,
+    password      VARCHAR(255) NOT NULL,
     cohort        VARCHAR(10)  NULL,                  -- K1..K4
     class_name    NVARCHAR(50) NULL,
     faculty_id    INT          NULL,
@@ -41,6 +42,7 @@ CREATE TABLE users (
     CONSTRAINT fk_users_faculty FOREIGN KEY (faculty_id) REFERENCES faculties(faculty_id),
     CONSTRAINT ck_users_role    CHECK (system_role IN ('STUDENT','STAFF','ADMIN')),
     CONSTRAINT ck_users_cohort  CHECK (cohort IS NULL OR cohort IN ('K1','K2','K3','K4')),
+    -- 👉 ĐÃ SỬA LẠI EMAIL CHUẨN
     CONSTRAINT ck_users_email   CHECK (email LIKE '%@st.cmcu.edu.vn' OR email LIKE '%@cmcu.edu.vn')
 );
 GO
@@ -102,7 +104,7 @@ CREATE TABLE tickets (
     event_id       INT          NOT NULL,
     student_id     INT          NOT NULL,
     ticket_code    VARCHAR(50)  NOT NULL UNIQUE,
-    qr_token       VARCHAR(64)  NOT NULL UNIQUE,  -- SHA-256 hex
+    qr_token       VARCHAR(64)  NOT NULL UNIQUE,
     registered_at  DATETIME2    NOT NULL DEFAULT SYSDATETIME(),
     checkin_status VARCHAR(20)  NOT NULL DEFAULT 'REGISTERED',
     checkin_time   DATETIME2    NULL,
@@ -111,7 +113,7 @@ CREATE TABLE tickets (
     CONSTRAINT fk_tickets_student FOREIGN KEY (student_id) REFERENCES users(user_id),
     CONSTRAINT fk_tickets_checker FOREIGN KEY (checked_by) REFERENCES users(user_id),
     CONSTRAINT ck_tickets_status  CHECK (checkin_status IN ('REGISTERED','CHECKED_IN','CANCELLED','ABSENT')),
-    CONSTRAINT uq_event_student   UNIQUE (event_id, student_id)   -- ⭐ Chống trùng vé
+    CONSTRAINT uq_event_student   UNIQUE (event_id, student_id)
 );
 GO
 
@@ -132,10 +134,6 @@ CREATE TABLE staff_tasks (
 );
 GO
 
-/* =============================================================
-   ⭐ STORED PROCEDURE MẪU — Chống Overbooking bằng UPDLOCK, HOLDLOCK
-   (Dùng ở Bước 2 khi triển khai đăng ký vé trên SQL Server thật)
-   ============================================================= */
 CREATE OR ALTER PROCEDURE sp_register_ticket
     @event_id    INT,
     @student_id  INT,
@@ -146,7 +144,6 @@ BEGIN
     SET NOCOUNT ON;
     BEGIN TRANSACTION;
     BEGIN TRY
-        /* Khoá dòng events → serialize mọi request đồng thời vào cùng sự kiện */
         DECLARE @cap INT, @status VARCHAR(10);
         SELECT @cap = seat_capacity, @status = status
         FROM events WITH (UPDLOCK, HOLDLOCK)
@@ -167,7 +164,6 @@ BEGIN
         INSERT INTO tickets (event_id, student_id, ticket_code, qr_token, checkin_status)
         VALUES (@event_id, @student_id, @ticket_code, @qr_token, 'REGISTERED');
 
-        /* Nếu vừa đầy → tự khoá FULL */
         IF @used + 1 = @cap
             UPDATE events SET status = 'FULL' WHERE event_id = @event_id;
 
