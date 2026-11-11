@@ -1,0 +1,499 @@
+:root {
+  --primary: #4F46E5;
+  --bg-body: #F3F4F6; 
+  --text-main: #111827;
+  --border-color: #E5E7EB;
+  --font-family: 'Inter', system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-body);
+  color: var(--text-main);
+}
+
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; font-family: inherit; }
+input, select { font-family: inherit; }
+
+/* ==========================================
+   CSS CHO VÉ ĐIỆN TỬ (E-TICKET)
+   ========================================== */
+.ticket-card {
+  display: flex;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+}
+
+/* Hiệu ứng răng cưa ở giữa vé */
+.ticket-card::before, .ticket-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background: radial-gradient(circle, var(--bg-body) 10px, transparent 11px);
+  background-size: 20px 20px;
+  background-position: center;
+  left: calc(65% - 10px); 
+  z-index: 1;
+}
+
+.ticket-left {
+  flex: 0 0 65%;
+  padding: 24px;
+  border-right: 2px dashed #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-right {
+  flex: 0 0 35%;
+  padding: 24px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* Phần Face ID */
+.face-id-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.face-avatar {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #4F46E5, #9333EA);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.5rem;
+  position: relative;
+}
+
+.face-scan-icon {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  background: #10B981;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.7rem;
+  border: 2px solid white;
+}
+
+/* Responsive cho Vé */
+@media (max-width: 768px) {
+  .ticket-card { flex-direction: column; }
+  .ticket-card::before, .ticket-card::after { display: none; }
+  .ticket-left, .ticket-right { flex: 1 1 100%; width: 100%; }
+  .ticket-left { border-right: none; border-bottom: 2px dashed var(--border-color); }
+}
+
+/* ==========================================
+   HIỆU ỨNG MÀU ĐỘNG (DYNAMIC GRADIENT) & MENU
+   ========================================== */
+
+/* 1. Hiệu ứng nền chuyển động cho toàn bộ Sidebar */
+@keyframes sidebarGradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.sidebar-animated-bg {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFF 40%, #EEF2FF 100%) !important;
+  border-right: 1px solid rgba(79, 70, 229, 0.1) !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* 2. Hiệu ứng trượt vào khi tải trang cho Menu */
+@keyframes slideInMenu {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.nav-item {
+  position: relative;
+  display: block;
+  padding: 12px 16px;
+  border-radius: 8px;
+  white-space: nowrap;
+  color: var(--text-main);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  animation: slideInMenu 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+/* Trạng thái mục đang chọn (Active) */
+.nav-item.active {
+  background: linear-gradient(90deg, #554de3 0%, #6975ff 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  transform: translateX(0) !important;
+}
+
+/* Hiệu ứng Hover */
+.nav-item:not(.active):hover {
+  background-color: #F3F4F6; 
+  color: var(--primary);     
+  transform: translateX(6px);           
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) scaleY(0); 
+  width: 4px;
+  height: 60%;
+  background-color: var(--primary);
+  border-radius: 0 4px 4px 0;
+  transition: transform 0.3s ease;
+}
+
+.nav-item:not(.active):hover::before {
+  transform: translateY(-50%) scaleY(1); 
+}
+
+.nav-item:active {
+  transform: translateX(4px) scale(0.97) !important;
+}
+
+/* ==========================================
+   NÂNG CẤP HEADER USER PROFILE & NÚT ĐĂNG XUẤT
+   ========================================== */
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-profile-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 40px;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  animation: slideDownFade 0.5s ease-out forwards;
+}
+
+.user-profile-wrapper:hover {
+  background-color: #F8FAFC;
+  border-color: var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.header-avatar-new {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4F46E5, #9333EA);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.user-profile-wrapper:hover .header-avatar-new {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.user-info-new {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.user-name-new {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.user-role-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #EEF2FF;
+  color: var(--primary);
+}
+
+.user-role-badge.admin {
+  background-color: #FCE7F3;
+  color: #BE185D;
+}
+
+.btn-logout-new {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: transparent;
+  color: #EF4444;
+  border: 1px solid #FECACA;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.btn-logout-new:hover {
+  background-color: #FEF2F2;
+  border-color: #EF4444;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.btn-logout-new:active {
+  transform: translateY(1px) scale(0.95);
+}
+
+/* Nâng cấp Header Kính mờ */
+header {
+  background: linear-gradient(90deg, #FFFFFF 0%, #F5F8FF 100%) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(79, 70, 229, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.03) !important;
+}
+
+aside > div:first-child {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+
+/* ==========================================
+   GIAO DIỆN MÁY SOÁT VÉ (PRO MAX & GLOW CARD)
+   ========================================== */
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 1. Khung chứa chính (Premium Glow Card) */
+.checkin-container {
+  animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-width: 600px;
+  margin: 20px auto;
+  
+  /* Nền chuyển màu Gradient nhẹ từ Trắng sang Xanh Indigo cực nhạt */
+  background: linear-gradient(145deg, #FFFFFF 0%, #F4F7FF 100%);
+  padding: 40px;
+  border-radius: 24px;
+  
+  /* Viền phát sáng và đổ bóng màu xanh */
+  border: 1px solid rgba(79, 70, 229, 0.15);
+  box-shadow: 
+    0 10px 30px -5px rgba(79, 70, 229, 0.15),
+    0 20px 40px -10px rgba(0, 0, 0, 0.05);
+  
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Hiệu ứng Vầng sáng phía sau thẻ (Glow Effect) */
+.checkin-container::after {
+  content: '';
+  position: absolute;
+  top: -50px; left: -50px; right: -50px; bottom: -50px;
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 60%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Viền Gradient chạy trên đỉnh thẻ */
+.checkin-container::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #4F46E5, #9333EA, #4F46E5);
+  background-size: 200% 100%;
+  animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* 2. Thanh Tabs */
+.tabs-wrapper {
+  display: flex;
+  background-color: #F1F5F9;
+  padding: 6px;
+  border-radius: 14px;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  color: #64748B;
+  background: transparent;
+  border: none;
+}
+
+.tab-btn.active {
+  background-color: #FFFFFF;
+  color: #4F46E5;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+/* 3. Khung Camera */
+.camera-wrapper {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: #0F172A;
+  height: 350px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #E2E8F0;
+}
+
+/* Ẩn rác thư viện */
+#reader { width: 100% !important; height: 100% !important; border: none !important; }
+#reader video { object-fit: cover !important; }
+#reader__dashboard { position: absolute; bottom: 10px; left: 0; right: 0; z-index: 10; background: transparent !important; }
+#reader__dashboard_section_swaplink { display: none !important; }
+
+#reader button {
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(4px);
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s !important;
+}
+#reader button:hover { background: rgba(255, 255, 255, 0.3) !important; }
+
+/* 4 Góc bo Camera */
+.scanner-corner {
+  position: absolute;
+  width: 40px; height: 40px;
+  border: 4px solid #4F46E5;
+  z-index: 5; pointer-events: none;
+}
+.corner-tl { top: 20px; left: 20px; border-right: none; border-bottom: none; border-top-left-radius: 12px; }
+.corner-tr { top: 20px; right: 20px; border-left: none; border-bottom: none; border-top-right-radius: 12px; }
+.corner-bl { bottom: 20px; left: 20px; border-right: none; border-top: none; border-bottom-left-radius: 12px; }
+.corner-br { bottom: 20px; right: 20px; border-left: none; border-top: none; border-bottom-right-radius: 12px; }
+
+/* Tia sáng quét */
+@keyframes scan {
+  0% { top: 30px; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: calc(100% - 30px); opacity: 0; }
+}
+.scanner-line {
+  position: absolute; left: 30px; right: 30px; height: 3px;
+  background: linear-gradient(90deg, transparent, #4F46E5, transparent);
+  box-shadow: 0 0 15px 2px rgba(79, 70, 229, 0.5);
+  z-index: 5; animation: scan 2.5s ease-in-out infinite; pointer-events: none;
+}
+
+/* 5. Ô nhập Mã SV */
+.modern-input {
+  width: 100%; padding: 18px; border-radius: 16px;
+  border: 2px solid #E2E8F0; font-size: 1.3rem;
+  text-align: center; letter-spacing: 4px; font-weight: 700;
+  background-color: #F8FAFC; transition: all 0.3s ease; color: #1E293B;
+}
+.modern-input:focus {
+  outline: none; border-color: #4F46E5;
+  background-color: #FFFFFF; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+}
+
+/* 6. Nút bấm 3D */
+.btn-3d {
+  width: 100%; padding: 16px; border-radius: 12px;
+  background: #4F46E5; color: white; font-size: 1.1rem; font-weight: 700;
+  border: none; box-shadow: 0 6px 0 #3730A3, 0 8px 15px rgba(79, 70, 229, 0.3);
+  transform: translateY(0); transition: all 0.1s ease; margin-top: 10px;
+}
+.btn-3d:hover { background: #4338CA; }
+.btn-3d:active {
+  box-shadow: 0 2px 0 #3730A3, 0 4px 8px rgba(79, 70, 229, 0.3);
+  transform: translateY(4px);
+}
+
+/* 7. Custom Toast Notification */
+.custom-toast {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 16px; border-radius: 12px; font-weight: 600; margin-bottom: 24px;
+  animation: slideDownFade 0.3s ease-out;
+}
+.toast-success { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+.toast-error { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+.toast-loading { background: #EEF2FF; color: #3730A3; border: 1px solid #C7D2FE; }
+
+/* ==========================================
+   MÀU NỀN CHO TỪNG THẺ SỰ KIỆN (EVENT CARDS)
+   ========================================== */
+
+/* Thẻ 1: Ánh Tím nhạt */
+.bg-card-1 { background: linear-gradient(145deg, #eec7c7 0%, #a7f5ce 100%) !important; }
+
+/* Thẻ 2: Ánh Xanh lá nhạt */
+.bg-card-2 { background: linear-gradient(145deg, #d2b4ed 0%, #9fb5f2 100%) !important; }
+
+/* Thẻ 3: Ánh Cam nhạt */
+.bg-card-3 { background: linear-gradient(145deg, #c3ffea 0%, #a198f9 100%) !important; }
+
+/* Thẻ 4: Ánh Hồng nhạt */
+.bg-card-4 { background: linear-gradient(145deg, #a9aaf6 0%, #f29ec9 100%) !important; }
+
+/* Thẻ 5: Ánh Xanh dương nhạt */
+.bg-card-5 { background: linear-gradient(145deg, #daf3bb 0%, #d2c5fb 100%) !important; }
