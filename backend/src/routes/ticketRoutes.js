@@ -1,9 +1,6 @@
 /* =============================================================
    src/routes/ticketRoutes.js
-   RESTful API cho vé: đăng ký & hủy
-   -------------------------------------------------------------
-   • POST /api/tickets/register  →  201 | 400(TC-02) | 403(TC-01) | 409(TC-03)
-   • POST /api/tickets/cancel    →  200 | 400
+   RESTful API cho vé: đăng ký, hủy, điểm danh & tra cứu vé của tôi
    ============================================================= */
 const express = require('express');
 const router = express.Router();
@@ -12,7 +9,6 @@ const qr = require('../services/qrService');
 const eligibilityService = require('../services/eligibilityService');
 const capacityService = require('../services/capacityService');
 
-/* Helper tạo lỗi có status + code */
 function httpError(status, message, code, data) {
   const err = new Error(message);
   err.statusCode = status;
@@ -21,7 +17,6 @@ function httpError(status, message, code, data) {
   return err;
 }
 
-/* Format ISO → "HH:mm:ss - DD/MM/YYYY" (giờ Việt Nam) */
 function formatVnTime(iso) {
   if (!iso) return 'N/A';
   const d = new Date(iso);
@@ -32,11 +27,55 @@ function formatVnTime(iso) {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
 }
+
+/* =============================================================
+   GET /api/tickets/my-tickets?student_code=SV0001 (hoặc user_id=3)
+   Use-Case: Sinh viên xem danh sách vé của mình
+   ============================================================= */
+router.get('/my-tickets', async (req, res, next) => {
+  try {
+    // Nhận cả user_id, student_id và student_code
+    const { student_code, user_id, student_id } = req.query || {};
+    const targetUserId = user_id || student_id;
+
+    let user = null;
+    if (targetUserId) {
+      user = await db.findById('users', Number(targetUserId));
+    } else if (student_code) {
+      user = await db.findOne('users', u => u.student_code === student_code);
+    }
+
+    if (!user) {
+      throw httpError(404, 'Không tìm thấy thông tin sinh viên', 'USER_NOT_FOUND');
+    }
+
+    const tickets = await db.findWhere('tickets', t => t.student_id === user.user_id);
+    const enriched = [];
+    for (const t of tickets) {
+      const ev = await db.findById('events', t.event_id);
+      enriched.push({
+        ...t,
+        event_title: ev?.title || null,
+        event_location: ev?.location || null,
+        event_start: ev?.start_time || null,       // Khớp với MyTickets.jsx
+        event_start_time: ev?.start_time || null,  // Giữ tương thích ngược
+        event_end_time: ev?.end_time || null,
+        event_status: ev?.status || null,
+        cancel_deadline_hours: ev?.cancel_deadline_hours ?? 24, // Để tính canCancel ở MyTickets.jsx
+      });
+    }
+
+    res.json({ success: true, count: enriched.length, data: enriched });
+  } catch (err) {
+    next(err);
+  }
+});
+
 /* =============================================================
    POST /api/tickets/register
    Body: { event_id: number, student_code: string }
    ============================================================= */
-router.post('/register', (req, res, next) => {
+router.post('/register', async (req, res, next) => {
   try {
     const { event_id, student_code } = req.body || {};
     if (!event_id || !student_code) {
@@ -45,7 +84,7 @@ router.post('/register', (req, res, next) => {
     const eventId = Number(event_id);
 
     /* ---------- 1. Xác thực sinh viên ---------- */
-    const user = db.findOne('users', u => u.student_code === student_code);
+    const user = await db.findOne('users', u => u.student_code === student_code);
     if (!user) {
       throw httpError(404, `Không tìm thấy sinh viên với mã ${student_code}`, 'USER_NOT_FOUND');
     }
@@ -54,7 +93,7 @@ router.post('/register', (req, res, next) => {
     }
 
     /* ---------- 2. Xác thực sự kiện ---------- */
-    const event = db.findById('events', eventId);
+    const event = await db.findById('events', eventId);
     if (!event) {
       throw httpError(404, `Không tìm thấy sự kiện #${eventId}`, 'EVENT_NOT_FOUND');
     }
@@ -65,55 +104,46 @@ router.post('/register', (req, res, next) => {
       throw httpError(400, 'Sự kiện đã diễn ra, không thể đăng ký', 'EVENT_STARTED');
     }
 
-        /* =========================================================
-       GỌI SERVICE CỦA TÚ (PB-01) VÀ MINH (PB-02)
-       ========================================================= */
-    
-    // 1. Gọi Tú check điều kiện (Eligibility)
-    const eligCheck = eligibilityService.checkEligibility(user, eventId);
+    /* ---------- 3. Gọi Service kiểm tra điều kiện & sức chứa ---------- */
+    const eligCheck = await eligibilityService.checkEligibility(user, eventId);
     if (!eligCheck.ok) {
       throw httpError(403, eligCheck.message, 'NOT_ELIGIBLE');
     }
 
-    // 2. Gọi Minh check trùng vé (Duplicate)
-    const dupCheck = capacityService.checkDuplicate(user, eventId);
+    const dupCheck = await capacityService.checkDuplicate(user, eventId);
     if (!dupCheck.ok) {
       throw httpError(400, dupCheck.message, 'DUPLICATE_TICKET');
     }
-    // Lưu lại vé cũ (nếu vé đó đang bị CANCELLED) để tí nữa kích hoạt lại
-    const existingTicket = dupCheck.existing; 
+    const existingTicket = dupCheck.existing;
 
-    // 3. Gọi Minh check sức chứa (Overbooking)
-    const capCheck = capacityService.checkOverbooking(eventId, event.seat_capacity);
+    const capCheck = await capacityService.checkOverbooking(eventId, event.seat_capacity);
     if (!capCheck.ok) {
       throw httpError(409, capCheck.message, 'EVENT_FULL');
     }
 
-    /* ---------- 6. Sinh mã vé + QR ---------- */
+    /* ---------- 4. Sinh mã vé + QR ---------- */
     const ticketCode = qr.generateTicketCode(eventId, student_code);
     const qrToken = qr.generateQrToken(ticketCode);
-    const now = new Date().toISOString();
+    const nowDate = new Date();
 
     let ticket;
-    // Dùng existingTicket (do Minh trả về) thay vì biến existing cũ
     if (existingTicket && existingTicket.checkin_status === 'CANCELLED') {
-      /* Tái kích hoạt vé đã hủy */
-      ticket = db.update('tickets', existingTicket.ticket_id, {
+      ticket = await db.update('tickets', existingTicket.ticket_id, {
         ticket_code: ticketCode,
         qr_token: qrToken,
-        registered_at: new Date().toISOString(),
+        registered_at: nowDate,
         checkin_status: 'REGISTERED',
         checkin_time: null,
         checked_by: null,
       });
     } else {
       try {
-        ticket = db.insert('tickets', {
+        ticket = await db.insert('tickets', {
           event_id: eventId,
           student_id: user.user_id,
           ticket_code: ticketCode,
           qr_token: qrToken,
-          registered_at: new Date().toISOString(),
+          registered_at: nowDate,
           checkin_status: 'REGISTERED',
           checkin_time: null,
           checked_by: null,
@@ -126,13 +156,13 @@ router.post('/register', (req, res, next) => {
       }
     }
 
-    /* ---------- 7. Tự khóa FULL nếu vừa hết chỗ ---------- */
-    // Dùng capCheck.activeCount (do Minh trả về) thay vì đếm lại
-    if (capCheck.activeCount + 1 >= event.seat_capacity) {
-      db.update('events', eventId, { status: 'FULL' });
+    /* ---------- 5. Tự khóa FULL nếu vừa hết chỗ ---------- */
+    const newCount = capCheck.activeCount + 1;
+    if (newCount >= event.seat_capacity) {
+      await db.update('events', eventId, { status: 'FULL' });
     }
 
-    /* ---------- 8. Trả 201 Created ---------- */
+    /* ---------- 6. Trả 201 Created ---------- */
     res.status(201).json({
       success: true,
       message: 'Đăng ký vé thành công',
@@ -160,13 +190,13 @@ router.post('/register', (req, res, next) => {
    POST /api/tickets/cancel
    Body: { ticket_code: string }  hoặc  { ticket_id: number }
    ============================================================= */
-router.post('/cancel', (req, res, next) => {
+router.post('/cancel', async (req, res, next) => {
   try {
     const { ticket_code, ticket_id } = req.body || {};
 
     let ticket = null;
-    if (ticket_id) ticket = db.findById('tickets', ticket_id);
-    else if (ticket_code) ticket = db.findOne('tickets', t => t.ticket_code === ticket_code);
+    if (ticket_id) ticket = await db.findById('tickets', Number(ticket_id));
+    else if (ticket_code) ticket = await db.findOne('tickets', t => t.ticket_code === ticket_code);
 
     if (!ticket) {
       throw httpError(404, 'Không tìm thấy vé cần hủy', 'TICKET_NOT_FOUND');
@@ -178,12 +208,11 @@ router.post('/cancel', (req, res, next) => {
       throw httpError(400, 'Vé đã được điểm danh, không thể hủy', 'ALREADY_CHECKED_IN');
     }
 
-    const event = db.findById('events', ticket.event_id);
+    const event = await db.findById('events', ticket.event_id);
     if (!event) {
       throw httpError(404, 'Sự kiện không tồn tại', 'EVENT_NOT_FOUND');
     }
 
-    /* ---------- Kiểm tra hạn hủy vé ---------- */
     const now = new Date();
     const deadline = new Date(
       new Date(event.start_time).getTime() - event.cancel_deadline_hours * 3600 * 1000
@@ -197,13 +226,11 @@ router.post('/cancel', (req, res, next) => {
       );
     }
 
-    /* ---------- Hủy vé ---------- */
-    db.update('tickets', ticket.ticket_id, { checkin_status: 'CANCELLED' });
+    await db.update('tickets', ticket.ticket_id, { checkin_status: 'CANCELLED' });
 
-    /* ---------- Mở lại sự kiện nếu đang FULL ---------- */
     let eventReopened = false;
     if (event.status === 'FULL') {
-      db.update('events', event.event_id, { status: 'OPEN' });
+      await db.update('events', event.event_id, { status: 'OPEN' });
       eventReopened = true;
     }
 
@@ -224,28 +251,15 @@ router.post('/cancel', (req, res, next) => {
     next(err);
   }
 });
+
 /* =============================================================
    POST /api/tickets/checkin
-   Điểm danh sinh viên khi tham dự sự kiện.
-   -------------------------------------------------------------
-   Hỗ trợ 3 phương thức (ưu tiên theo thứ tự):
-     1. qr_token     — quét QR từ camera
-     2. ticket_code  — nhập tay mã vé khi camera lỗi
-     3. student_code — nhập tay mã SV + event_id khi camera lỗi
-
-   Body: {
-     qr_token?:     "64 ký tự hex",
-     ticket_code?:  "TK-E1-BIT250001",
-     student_code?: "BIT250001",
-     event_id?:     1,           // bắt buộc khi dùng student_code
-     staff_user_id: 4            // BẮT BUỘC: staff thực hiện điểm danh
-   }
+   Điểm danh sinh viên khi tham dự sự kiện
    ============================================================= */
-router.post('/checkin', (req, res, next) => {
+router.post('/checkin', async (req, res, next) => {
   try {
     const { qr_token, ticket_code, student_code, event_id, staff_user_id } = req.body || {};
 
-    /* ---------- 1. Validate input ---------- */
     if (!qr_token && !ticket_code && !student_code) {
       throw httpError(
         400,
@@ -257,8 +271,7 @@ router.post('/checkin', (req, res, next) => {
       throw httpError(400, 'Thiếu staff_user_id (người thực hiện điểm danh)', 'MISSING_STAFF');
     }
 
-    /* ---------- 2. Validate người quét ---------- */
-    const staff = db.findById('users', staff_user_id);
+    const staff = await db.findById('users', Number(staff_user_id));
     if (!staff) {
       throw httpError(404, `Không tìm thấy staff #${staff_user_id}`, 'STAFF_NOT_FOUND');
     }
@@ -266,7 +279,6 @@ router.post('/checkin', (req, res, next) => {
       throw httpError(403, 'Chỉ STAFF hoặc ADMIN mới được điểm danh', 'NOT_STAFF');
     }
 
-    /* ---------- 3. Tìm vé theo thứ tự ưu tiên ---------- */
     let ticket = null;
     let scanMethod = null;
 
@@ -274,10 +286,10 @@ router.post('/checkin', (req, res, next) => {
       if (!qr.isValidQrFormat(qr_token)) {
         throw httpError(400, 'qr_token không hợp lệ (phải là 64 ký tự hex)', 'INVALID_QR_FORMAT');
       }
-      ticket = db.findOne('tickets', t => t.qr_token === qr_token);
+      ticket = await db.findOne('tickets', t => t.qr_token === qr_token);
       scanMethod = 'QR_TOKEN';
     } else if (ticket_code) {
-      ticket = db.findOne('tickets', t => t.ticket_code === ticket_code);
+      ticket = await db.findOne('tickets', t => t.ticket_code === ticket_code);
       scanMethod = 'TICKET_CODE';
     } else if (student_code) {
       if (!event_id) {
@@ -287,11 +299,11 @@ router.post('/checkin', (req, res, next) => {
           'MISSING_EVENT_ID'
         );
       }
-      const student = db.findOne('users', u => u.student_code === student_code);
+      const student = await db.findOne('users', u => u.student_code === student_code);
       if (!student) {
         throw httpError(404, `Không tìm thấy sinh viên ${student_code}`, 'STUDENT_NOT_FOUND');
       }
-      ticket = db.findOne(
+      ticket = await db.findOne(
         'tickets',
         t => t.event_id === Number(event_id) && t.student_id === student.user_id
       );
@@ -302,12 +314,30 @@ router.post('/checkin', (req, res, next) => {
       throw httpError(404, 'Không tìm thấy vé phù hợp', 'TICKET_NOT_FOUND');
     }
 
-    /* ---------- 4. Nạp ngữ cảnh ---------- */
-    const event   = db.findById('events', ticket.event_id);
-    const student = db.findById('users', ticket.student_id);
-    const faculty = student ? db.findById('faculties', student.faculty_id) : null;
+    const event   = await db.findById('events', ticket.event_id);
+    const student = await db.findById('users', ticket.student_id);
+    const faculty = student && student.faculty_id ? await db.findById('faculties', student.faculty_id) : null;
 
-    /* ---------- 5a. Vé đã HỦY ---------- */
+    if (!event) {
+      throw httpError(404, 'Sự kiện của vé này không tồn tại', 'EVENT_NOT_FOUND');
+    }
+
+    /* ---------- Kiểm tra trạng thái sự kiện & khung giờ điểm danh (Test Sự kiện C) ---------- */
+    if (event.status === 'CLOSED') {
+      throw httpError(400, 'Sự kiện đã đóng (CLOSED), không thể điểm danh', 'EVENT_CLOSED');
+    }
+    const nowMs = Date.now();
+    const allowFromMs = new Date(event.start_time).getTime() - 2 * 3600 * 1000; // Mở quét trước 2 tiếng
+    const allowToMs   = new Date(event.end_time).getTime();
+    if (nowMs < allowFromMs || nowMs > allowToMs) {
+      throw httpError(
+        400,
+        `Ngoài khung giờ điểm danh của sự kiện (${formatVnTime(event.start_time)} - ${formatVnTime(event.end_time)}).`,
+        'OUTSIDE_CHECKIN_WINDOW'
+      );
+    }
+
+    /* ---------- Vé đã HỦY ---------- */
     if (ticket.checkin_status === 'CANCELLED') {
       throw httpError(
         400,
@@ -321,10 +351,10 @@ router.post('/checkin', (req, res, next) => {
       );
     }
 
-    /* ---------- 5b. TC-CHECKIN-02: Chống quét lặp ---------- */
+    /* ---------- TC-CHECKIN-02: Chống quét lặp ---------- */
     if (ticket.checkin_status === 'CHECKED_IN') {
       const prevTime  = formatVnTime(ticket.checkin_time);
-      const checker   = ticket.checked_by ? db.findById('users', ticket.checked_by) : null;
+      const checker   = ticket.checked_by ? await db.findById('users', ticket.checked_by) : null;
 
       throw httpError(
         400,
@@ -355,11 +385,11 @@ router.post('/checkin', (req, res, next) => {
       );
     }
 
-    /* ---------- 6. Điểm danh thành công ---------- */
-    const nowIso = new Date().toISOString();
-    const updated = db.update('tickets', ticket.ticket_id, {
+    /* ---------- Điểm danh thành công ---------- */
+    const nowDate = new Date();
+    const updated = await db.update('tickets', ticket.ticket_id, {
       checkin_status: 'CHECKED_IN',
-      checkin_time: nowIso,
+      checkin_time: nowDate,
       checked_by: staff.user_id,
     });
 
