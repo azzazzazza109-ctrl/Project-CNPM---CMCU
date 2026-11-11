@@ -2,9 +2,9 @@ name: Backend CI Test
 
 on:
   push:
-    branches: [ "main", "Tú", "master" ] # Chạy khi push lên các nhánh này
+    branches: [ "main", "Tú", "master" ]
   pull_request:
-    branches: [ "main" ] # Chạy khi có ai đó tạo Pull Request vào main
+    branches: [ "main" ]
 
 jobs:
   test:
@@ -23,18 +23,27 @@ jobs:
       run: |
         docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=MatKhauApp_KhacSa!2026" \
            -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2019-latest
+        
         echo "Đợi SQL Server khởi động..."
-        sleep 20
+        # Vòng lặp đợi cho đến khi SQL Server thực sự sẵn sàng (tối đa 60s)
+        for i in {1..12}; do
+          # 👉 ĐÃ SỬA THÀNH mssql-tools18 VÀ THÊM CỜ -C
+          if docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "MatKhauApp_KhacSa!2026" -C -Q "SELECT 1" &> /dev/null; then
+            echo "SQL Server đã sẵn sàng!"
+            break
+          fi
+          echo "Đang đợi... ($i/12)"
+          sleep 5
+        done
 
     - name: 4. Nạp Database và Seed Data
       run: |
-        # Copy file SQL vào trong container Docker
         docker cp database/cmcu_database.sql sqlserver:/tmp/
         docker cp database/seed_data.sql sqlserver:/tmp/
         
-        # Chạy script SQL (Dùng SA user vì user cmcu_app chưa được tạo)
-        docker exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "MatKhauApp_KhacSa!2026" -i /tmp/cmcu_database.sql
-        docker exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "MatKhauApp_KhacSa!2026" -i /tmp/seed_data.sql
+        # 👉 ĐÃ SỬA THÀNH mssql-tools18 VÀ THÊM CỜ -C
+        docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "MatKhauApp_KhacSa!2026" -C -i /tmp/cmcu_database.sql
+        docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "MatKhauApp_KhacSa!2026" -C -i /tmp/seed_data.sql
 
     - name: 5. Cài đặt thư viện Backend
       working-directory: ./backend
