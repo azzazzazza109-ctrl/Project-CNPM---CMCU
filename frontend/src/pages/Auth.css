@@ -1,0 +1,226 @@
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-body);
+}
+
+/* --- CỘT TRÁI --- */
+.auth-banner {
+  flex: 1; /* Chiếm 50% màn hình */
+  background: linear-gradient(135deg, #483ff4 0%, #3649f4 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  padding: 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-banner h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.auth-banner p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  max-width: 400px;
+}
+
+.banner-logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.banner-logo-img {
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* --- CỘT PHẢI --- */
+.auth-form-wrapper {
+  flex: 1; /* Chiếm 50% màn hình */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  background: linear-gradient(135deg, #F8FAFC 0%, #E0E7FF 100%);
+}
+
+.auth-form-box {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  padding: 40px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+.auth-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.auth-logo-img {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+}
+
+.auth-logo-text {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.auth-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #4F46E5 0%, #4e64f3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-bottom: 32px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.auth-form-group {
+  margin-bottom: 20px;
+}
+
+.auth-form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.auth-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid transparent;
+  background-color: #F3F4F6;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.auth-input:focus {
+  outline: none;
+  background-color: #FFFFFF;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #665fe4 0%, #425eee 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+}
+
+.auth-error {
+  padding: 12px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.auth-footer a {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* Responsive: Ẩn banner khi xem trên điện thoại */
+@media (max-width: 768px) {
+  .auth-banner {
+    display: none;
+  }
+}
+/* =========================================
+   HIỆU ỨNG BONG BÓNG CHUYỂN ĐỘNG (FLOATING)
+   ========================================= */
+
+/* Định nghĩa chuyển động lơ lửng */
+@keyframes float {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-30px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Bong bóng thứ nhất (Góc trên trái) */
+.auth-banner::before {
+  content: '';
+  position: absolute;
+  width: 350px; 
+  height: 350px; 
+  top: -100px; 
+  left: -100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15); /* Màu trắng mờ */
+  animation: float 6s ease-in-out infinite; /* Chạy liên tục */
+  z-index: 0;
+}
+
+/* Bong bóng thứ hai (Góc dưới phải) */
+.auth-banner::after {
+  content: '';
+  position: absolute;
+  width: 450px; 
+  height: 450px; 
+  bottom: -150px; 
+  right: -100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1); /* Màu trắng mờ hơn */
+  animation: float 8s ease-in-out infinite; /* Chạy liên tục với tốc độ chậm hơn */
+  animation-delay: -3s; /* Lệch pha để 2 bong bóng nhấp nhô so le nhau */
+  z-index: 0;
+}
+
+/* Đảm bảo nội dung chữ và logo luôn nổi lên trên bong bóng */
+.auth-banner > * {
+  position: relative;
+  z-index: 1;
+}
