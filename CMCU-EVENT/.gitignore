@@ -1,0 +1,13 @@
+# Thư mục chứa thư viện (rất nặng, không cần up lên)
+node_modules/
+**/node_modules/
+
+# Các file chứa biến môi trường và thông tin bảo mật
+.env
+.env.*
+*.env
+
+# Các file log hoặc file rác của hệ điều hành
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,338 @@
+/* ==========================================
+   GIAO DIỆN ĐĂNG NHẬP/ĐĂNG KÝ (CINEMATIC UI)
+   ========================================== */
+
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-body);
+  overflow: hidden;
+}
+
+/* --- CỘT TRÁI: BANNER NỀN --- */
+.auth-banner {
+  flex: 1;
+  background: linear-gradient(135deg, #6092d8 0%, #182974 50%, #172493 100%);
+  background-size: 200% 200%;
+  animation: bannerGradient 10s ease infinite;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  padding: 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes bannerGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Hiệu ứng bong bóng chuyển động 3D (Orbiting Bubbles) */
+@keyframes floatOrbit {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33% { transform: translate(30px, -50px) scale(1.1) rotate(120deg); }
+  66% { transform: translate(-20px, 20px) scale(0.9) rotate(240deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+}
+
+.auth-banner::before,
+.auth-banner::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.05));
+  filter: blur(2px);
+  z-index: 0;
+}
+
+.auth-banner::before {
+  width: 350px; height: 350px; 
+  top: -100px; left: -100px;
+  animation: floatOrbit 12s ease-in-out infinite;
+}
+
+.auth-banner::after {
+  width: 500px; height: 500px; 
+  bottom: -150px; right: -100px;
+  animation: floatOrbit 18s ease-in-out infinite reverse;
+}
+
+.banner-logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  z-index: 1;
+}
+
+.banner-logo-img {
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(255,255,255,0.5)); /* Logo phát sáng */
+}
+
+.auth-banner h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+  z-index: 1;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.auth-banner p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  max-width: 400px;
+  line-height: 1.6;
+  z-index: 1;
+}
+
+/* --- CỘT PHẢI: FORM ĐĂNG NHẬP --- */
+.auth-form-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  background: linear-gradient(135deg, #F8FAFC 0%, #E0E7FF 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Vòng tròn trang trí mờ ở góc phải */
+.auth-form-wrapper::before {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: rgba(79, 70, 229, 0.15);
+  border-radius: 50%;
+  bottom: -100px;
+  right: -100px;
+  filter: blur(80px);
+  z-index: 0;
+}
+
+/* Khung kính mờ (Glassmorphism) + Hiệu ứng Trôi nổi */
+@keyframes floatForm {
+  0% { transform: translateY(0px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+  50% { transform: translateY(-10px); box-shadow: 0 30px 60px rgba(79, 70, 229, 0.15); }
+  100% { transform: translateY(0px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+}
+
+@keyframes fadeInForm {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.auth-form-box {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 40px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  position: relative;
+  z-index: 1;
+  
+  /* Kết hợp hiệu ứng xuất hiện và trôi nổi */
+  animation: fadeInForm 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
+             floatForm 6s ease-in-out infinite 0.8s;
+}
+
+/* Logo trong form */
+.auth-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.auth-logo-img {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.auth-form-box:hover .auth-logo-img {
+  transform: rotate(-10deg) scale(1.1);
+}
+
+.auth-logo-text {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+/* Tiêu đề Gradient chuyển động */
+@keyframes gradientTextMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.auth-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #4F46E5, #6f41e2, #20489e);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+  animation: gradientTextMove 3s linear infinite;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-bottom: 32px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Các ô nhập liệu */
+.auth-form-group {
+  margin-bottom: 20px;
+}
+
+.auth-form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.auth-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid rgba(226, 232, 240, 0.8);
+  background-color: rgba(243, 244, 246, 0.5);
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-main);
+}
+
+/* Hiệu ứng Neon Glow khi click vào input */
+.auth-input:focus {
+  outline: none;
+  background-color: #FFFFFF;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15), 0 0 15px rgba(79, 70, 229, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Nút bấm với hiệu ứng Ánh sáng lướt qua (Shine Sweep) */
+.auth-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #312ba5 0%, #5f2aba 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Tia sáng chạy ngang nút */
+.auth-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: all 0.5s ease;
+}
+
+.auth-btn:hover::before {
+  left: 100%; /* Ánh sáng quét qua */
+}
+
+.auth-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+}
+
+.auth-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.auth-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Thông báo lỗi */
+.auth-error {
+  padding: 12px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: 600;
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Hiệu ứng rung khi nhập sai mật khẩu */
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.auth-footer a {
+  color: var(--primary);
+  font-weight: 700;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+
+.auth-footer a:hover {
+  color: #7C3AED;
+  text-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+}
+
+/* Responsive Mobile */
+@media (max-width: 768px) {
+  .auth-banner {
+    display: none;
+  }
+  .auth-form-wrapper {
+    padding: 20px;
+  }
+  .auth-form-box {
+    padding: 30px 20px;
+    animation: fadeInForm 0.6s ease-out forwards; /* Tắt float trên mobile để tránh giật lag */
+  }
+}
